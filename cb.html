@@ -1,0 +1,456 @@
+<html>
+  <body>
+  <p style="font-size:50px">
+    CYBERBOX 1
+  </p>
+  <canvas id="cvs" width=1200 height=800>
+  </canvas>
+  <style>
+    input {
+      font-size:40px;
+    }
+  </style>
+  <script>
+    var lvl = 1;
+    var rightFlag = false;
+    var leftFlag = false;
+    var xx = 7;
+    var yy = 0;
+    var cvs = document.getElementById("cvs");
+    var ctx = cvs.getContext("2d");
+    var brick = new Image();
+    brick.src = "brick.png";
+    var bricks = [];
+    var blue = new Image();
+    blue.src = "blue.png";
+    var green = new Image();
+    green.src = "green.png";
+    var yellow = new Image();
+    yellow.src = "yellow.png";
+    var blues = [];
+    var drawPlayor = () => {
+      ctx.fillStyle = "white";
+      ctx.fillRect(xx*80,720 - yy*80, 80, 80); 
+    }
+    var erasePlayor = () => {
+      ctx.fillStyle = "black";
+      ctx.fillRect(xx*80,720 - yy*80, 80, 80);
+    }
+    var contMovUpYell = (x,y) => {
+      var f = true;
+      for(var i=0; i<blues.length; i++) {
+        if(x==blues[i][0]&&y==blues[i][1]) {
+          if(blues[i][2]!="b") {
+            f = false;
+            contMovUpYell(x,y-1);
+            blues[i][1]=blues[i][1]-1;
+          }
+        }
+      }
+    }
+    var contMovDownYell = (x,y) => {
+      var f = true;
+      for(var i=0; i<blues.length; i++) {
+        if(x==blues[i][0]&&y==blues[i][1]) {
+          if(blues[i][2]!="b") {
+            f = false;
+            contMovDownYell(x,y+1);
+            blues[i][1]=blues[i][1]+1;
+          }
+        }
+      }
+    }
+    var contMovLeftBlu = (x,y) => {
+      var f = true;
+      for(var i=0; i<blues.length; i++) {
+        if(x==blues[i][0]&&y==blues[i][1]) {
+          if(blues[i][2]!="y") {
+            f = false;
+            contMovLeftBlu(x-1,y);
+            blues[i][0]=blues[i][0]-1;
+          }
+        }
+          else {
+            leftFlag = true;
+            return;
+          }
+      }
+    }
+    var contMovRightBlu = (x,y) => {
+      var f = true;
+      for(var i=0; i<blues.length; i++) {
+        if(x==blues[i][0]&&y==blues[i][1]) {
+          if(blues[i][2]=="b"||blues[i][2]=="g") {
+            f = false;
+            contMovRightBlu(x+1,y);
+            blues[i][0]=blues[i][0]+1;
+          }
+          else {
+            rightFlag = true;
+            return;
+          }
+        }
+      }
+    }
+    var up = () => {
+      rightFlag = false;
+      leftFlag = false;
+      var f = true;
+      for(var i=0; i<bricks.length; i++) {
+        if(xx-1==bricks[i][0]&&yy==bricks[i][1]) {
+          f=false;
+        }
+      }
+
+      var tri = false;
+      for(var i=0; i<blues.length; i++) {
+        if(xx==blues[i][0]&&yy-1==blues[i][1]) {
+          f=false;
+          contMovUpYell(xx, yy-1);
+          tri = true;
+        }
+      }
+
+      if(f==true||tri==true) {
+        erasePlayor();
+        var fl = false;
+        for(var z=0; z<blues.length; z++) {
+            if(blues[z][0]==xx&&blues[z][1]==yy-1)
+              if(blues[z][2]=="b")
+                fl = true;
+        }
+        if(!fl)
+          if(yy>0) {
+            yy--;
+            if(xx==7&&yy==9) {
+              level();
+            }
+          }
+        drawPlayor();
+        drawBlues();
+        drawBricks();
+      } else if(tri==true) {
+        erasePlayor();
+        drawPlayor();
+        drawBlues();
+      }
+    }
+    var down = () => {
+      rightFlag = false;
+      leftFlag = false;
+      var f = true;
+      for(var i=0; i<bricks.length; i++) {
+        if(xx==bricks[i][0]&&yy+1==bricks[i][1]) {
+          f=false;
+        }
+      }
+
+      var tri = false;
+      for(var i=0; i<blues.length; i++) {
+        if(xx==blues[i][0]&&yy+1==blues[i][1]) {
+          f=false;
+          contMovDownYell(xx, yy+1);
+          tri = true;
+        }
+      }
+
+      if(f==true||tri==true) {
+        erasePlayor();
+        var fl = false;
+        for(var z=0; z<blues.length; z++) {
+            if(blues[z][0]==xx&&blues[z][1]==yy+1)
+              if(blues[z][2]=="b")
+                fl = true;
+        }
+        if(!fl)
+          if(yy<9) {
+            yy++;
+            if(xx==7&&yy==9) {
+              level();
+            }
+          }
+        drawPlayor();
+        drawBlues();
+        drawBricks();
+      } else if(tri==true) {
+        erasePlayor();
+        drawPlayor();
+        drawBlues();
+      }
+    }
+    var left = () => {
+      rightFlag = false;
+      var f = true;
+      for(var i=0; i<bricks.length; i++) {
+        if(xx-1==bricks[i][0]&&yy==bricks[i][1]) {
+          f=false;
+        }
+      }
+
+      var tri = false;
+      for(var i=0; i<blues.length; i++) {
+        if(xx-1==blues[i][0]&&yy==blues[i][1]) {
+          f=false;
+          contMovLeftBlu(xx-1, yy);
+          tri = true;
+          if(lvl==2)
+            leftFlag=false;
+        }
+      }
+
+      if(f==true||tri==true) {
+        erasePlayor();
+        var fl = false;
+        for(var z=0; z<blues.length; z++) {
+            if(blues[z][0]==xx-1&&blues[z][1]==yy)
+              if(blues[z][2]=="y")
+                fl = true;
+        }
+        if(!fl)
+          if(xx>0&&!leftFlag) {
+            xx--;
+            if(xx==7&&yy==9) {
+              level();
+            }
+          }
+        drawPlayor();
+        drawBlues();
+        drawBricks();
+      } else if(tri==true) {
+        erasePlayor();
+        drawPlayor();
+        drawBlues();
+      }
+    }
+    var right = () => {
+      leftFlag = false;
+      var f = true;
+      for(var i=0; i<bricks.length; i++) {
+        if(xx+1==bricks[i][0]&&yy==bricks[i][1]) {
+          f=false;
+        }
+      }
+
+      var tri = false;
+      for(var i=0; i<blues.length; i++) {
+        if(xx+1==blues[i][0]&&yy==blues[i][1]) {
+          f=false;
+          contMovRightBlu(xx+1, yy);
+          tri = true;
+        }
+      }
+
+      if(f==true||tri==true) {
+        erasePlayor();
+        var fl = false;
+        for(var z=0; z<blues.length; z++) {
+            if(blues[z][0]==xx+1&&blues[z][1]==yy)
+              if(blues[z][2]=="y")
+                fl = true;
+        }
+        if(!fl)
+          if(xx<14&&!rightFlag) {
+            xx++;
+            if(xx==7&&yy==9) {
+              level();
+            }
+          }
+        drawPlayor();
+        drawBlues();
+        drawBricks();
+      } else if(tri==true) {
+        erasePlayor();
+        drawPlayor();
+        drawBlues();
+      }
+    }
+    var addBlue = (x, y, t) => {
+      blues.push([x, y, t]);
+    }
+    var addBrick = (x, y) => {
+      bricks.push([x, y]);
+    }
+    var bricks_ = () => {
+      addBrick(2, 2);
+      addBrick(2, 6);
+      addBrick(5, 2);
+      addBrick(5, 6);
+      addBrick(9, 2);
+      addBrick(9, 6);
+      addBrick(12, 2);
+      addBrick(12, 6);
+      
+      addBrick(1, 4);
+      addBrick(3, 4);
+      addBrick(11, 4);
+      addBrick(13, 4);
+      
+      addBrick(4, 9);
+      addBrick(10, 9);
+
+      addBlue(4,0, "b");
+      addBlue(5,0, "b");
+      addBlue(9,0, "b");
+      addBlue(10,0, "b");
+      
+      addBlue(5,4, "b");
+      addBlue(9,4, "b");
+      
+      addBlue(5,8, "b");
+      addBlue(7,8, "b");
+      addBlue(9,8, "b");
+
+      addBlue(0,1, "y");
+      addBlue(0,2, "y");
+      addBlue(0,6, "y");
+      addBlue(0,7, "y");
+     
+      addBlue(14,1, "y");
+      addBlue(14,2, "y");
+      addBlue(14,6, "y");
+      addBlue(14,7, "y");
+     
+      addBlue(6,8, "y");
+      addBlue(8,8, "y");
+
+      addBlue(7,4, "g");
+      addBlue(6,7, "g");
+      addBlue(8,7, "g");
+    }
+    var again = () => {
+        ctx.fillStyle = "black";
+        ctx.fillRect(0,0,1200,800);
+        blues = [];
+        bricks = [];
+        xx=7;
+        yy=0;
+    }
+    var level1 = () => {
+      bricks_();
+    }
+    var level = () => {
+      lvl++;
+      again();
+      if(lvl==2) {
+        addBrick(2,0);
+        addBrick(4,0);
+        addBrick(11,0);
+        
+        addBrick(2,1);
+        addBrick(8,1);
+        addBrick(13,1);
+        
+        addBrick(6,2);
+        addBrick(7,2);
+        addBrick(8,2);
+        addBrick(11,2);
+        
+        addBrick(1,3);
+        addBrick(2,3);
+        addBrick(5,3);
+        addBrick(6,3);
+        addBrick(7,3);
+        addBrick(8,3);
+        addBrick(13,3);
+        
+        addBrick(3,4);
+        addBrick(4,4);
+        addBrick(11,4);
+        
+        addBrick(2,6);
+        addBrick(11,6);
+        addBrick(12,6);
+        addBrick(13,6);
+        
+        addBrick(13,7);
+        
+        addBrick(4,8);
+        addBrick(5,8);
+        addBrick(10,8);
+        
+        addBrick(4,9);
+        addBrick(9,9);
+        addBrick(10,9);
+        
+        addBlue(2,7,"b");
+        addBlue(3,7,"b");
+        addBlue(4,7,"b");
+        addBlue(5,7,"b");
+        addBlue(6,7,"b");
+        addBlue(8,7,"b");
+        addBlue(9,7,"b");
+        addBlue(10,7,"b");
+        
+        addBlue(2,5,"b");
+        
+        addBlue(13,2,"b");
+        
+        addBlue(11,1,"b");
+        
+        addBlue(10,0,"b");
+        addBlue(13,0,"b");
+        
+        addBlue(7,7,"y");
+        addBlue(14,7,"y");
+        
+        addBlue(0,1,"y");
+        addBlue(0,2,"y");
+        addBlue(0,3,"y");
+        addBlue(0,4,"y");
+        addBlue(0,5,"y");
+        
+        addBlue(7,6,"g");
+        addBlue(8,6,"y");
+        addBlue(14,6,"y");
+    
+        addBlue(8,5,"g");
+        addBlue(14,5,"y");
+        
+        addBlue(1,4,"g");
+        addBlue(4,1,"g");
+        
+        addBlue(3,2,"y");
+        addBlue(5,1,"y");
+        addBlue(12,1,"y");
+    
+      }
+     
+    }
+    var drawBricks = () => {
+      for(var i=0; i<bricks.length; i++) {
+        ctx.drawImage(brick, bricks[i][0]*80, 720 - bricks[i][1]*80, 80, 80);
+      }  
+    }
+    var drawBlues = () => {
+      for(var i=0; i<blues.length; i++) {
+        if(blues[i][2]=="b")
+            ctx.drawImage(blue, blues[i][0]*80, 720 - blues[i][1]*80, 80, 80);
+        if(blues[i][2]=="y")
+            ctx.drawImage(yellow, blues[i][0]*80, 720 - blues[i][1]*80, 80, 80);
+        if(blues[i][2]=="g")
+            ctx.drawImage(green, blues[i][0]*80, 720 - blues[i][1]*80, 80, 80);
+      }  
+    }
+    var drawLevel1 = () => {
+      ctx.fillStyle = "black";
+      ctx.fillRect(0,0,1200,800);
+      drawBricks();
+      drawBlues();
+    }
+    
+    var draw = () => {
+      level1();
+      drawLevel1();
+      drawPlayor();
+    }
+    draw();
+    
+  </script>
+  
+  <input type="button" value="left" onclick="left()">
+  <input type="button" value="up" onclick="down()">
+  <input type="button" value="down" onclick="up()">
+  <input type="button" value="right" onclick="right()">
+ 
+  </body>
+</html>
